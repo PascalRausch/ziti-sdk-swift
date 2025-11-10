@@ -8,6 +8,7 @@ on:
     branches:
       - main
       - alpha
+  workflow_dispatch:
 permissions:
   contents: write
 
