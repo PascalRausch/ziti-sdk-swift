@@ -20,10 +20,10 @@ jobs:
       matrix:
         spec:
         - { name: 'build-iphoneos-arm64', toolchain: 'iOS-arm64' }
-        - { name: 'build-iphonesimulator-x86_64', toolchain: 'iOS-Simulator-x86_64' }
-        - { name: 'build-iphonesimulator-arm64', toolchain: 'iOS-Simulator-arm64' }
+        # - { name: 'build-iphonesimulator-x86_64', toolchain: 'iOS-Simulator-x86_64' }
+        # - { name: 'build-iphonesimulator-arm64', toolchain: 'iOS-Simulator-arm64' }
         - { name: 'build-macosx-arm64', toolchain: 'macOS-arm64' }
-        - { name: 'build-macosx-x86_64', toolchain: 'macOS-x86_64' }
+        # - { name: 'build-macosx-x86_64', toolchain: 'macOS-x86_64' }
 
     steps:
     - name: Checkout Project
@@ -52,7 +52,12 @@ jobs:
         cmake -DCMAKE_BUILD_TYPE=Release -DTLSUV_TLSLIB=openssl -DEXCLUDE_PROGRAMS=ON -DVCPKG_INSTALL_OPTIONS="--overlay-ports=./deps/vcpkg-overlays/json-c" -DZITI_TUNNEL_BUILD_TESTS=OFF -DCMAKE_TOOLCHAIN_FILE="${TOOLCHAIN}" -S ./deps/ziti-tunnel-sdk-c -B ./deps/ziti-tunnel-sdk-c/${{ matrix.spec.name }}
         cmake --build ./deps/ziti-tunnel-sdk-c/${{ matrix.spec.name }}
         tar -cvzf ${{ matrix.spec.name }}.tgz -C ./deps/ziti-tunnel-sdk-c ${{ matrix.spec.name }}
-
+    
+    - name: Dump CMake logs
+      if: always()
+      run: |
+        cat /Users/runner/work/ziti-sdk-swift/ziti-sdk-swift/vcpkg/buildtrees/json-c/*.log
+        
     - name: Upload Build
       uses: actions/upload-artifact@v4
       with:
