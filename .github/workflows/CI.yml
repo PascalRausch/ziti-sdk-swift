@@ -26,6 +26,9 @@ jobs:
         # - { name: 'build-macosx-x86_64', toolchain: 'macOS-x86_64' }
 
     steps:
+    - name: Check CMake Version
+      run: cmake --version
+      
     - name: Checkout Project
       uses: actions/checkout@v4
       with:
