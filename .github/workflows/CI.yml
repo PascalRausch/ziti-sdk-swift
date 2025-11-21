@@ -14,16 +14,16 @@ permissions:
 
 jobs:
   build-tsdk:
-    runs-on: macos-13
+    runs-on: macos-15
 
     strategy:
       matrix:
         spec:
         - { name: 'build-iphoneos-arm64', toolchain: 'iOS-arm64' }
-        # - { name: 'build-iphonesimulator-x86_64', toolchain: 'iOS-Simulator-x86_64' }
-        # - { name: 'build-iphonesimulator-arm64', toolchain: 'iOS-Simulator-arm64' }
+        - { name: 'build-iphonesimulator-x86_64', toolchain: 'iOS-Simulator-x86_64' }
+        - { name: 'build-iphonesimulator-arm64', toolchain: 'iOS-Simulator-arm64' }
         - { name: 'build-macosx-arm64', toolchain: 'macOS-arm64' }
-        # - { name: 'build-macosx-x86_64', toolchain: 'macOS-x86_64' }
+        - { name: 'build-macosx-x86_64', toolchain: 'macOS-x86_64' }
 
     steps:
     - name: Check CMake Version
@@ -36,7 +36,7 @@ jobs:
 
     - uses: maxim-lobanov/setup-xcode@v1
       with:
-        xcode-version: '15.2'
+        xcode-version: '16.4'
 
     - name: macOS tools
       if: runner.os == 'macOS'
@@ -68,7 +68,7 @@ jobs:
         path: ${{ matrix.spec.name }}.tgz
 
   build-cziti:
-    runs-on: macos-13
+    runs-on: macos-15
     needs: [ build-tsdk ]
 
     steps:
@@ -79,7 +79,7 @@ jobs:
 
     - uses: maxim-lobanov/setup-xcode@v1
       with:
-        xcode-version: '15.2'
+        xcode-version: '16.4'
 
     - name: Download Artifacts
       uses: actions/download-artifact@v4
