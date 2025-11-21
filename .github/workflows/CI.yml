@@ -115,8 +115,12 @@ jobs:
 
     - name: Extract TSDK Builds
       run: |
+        ARTIFACT="build-iphoneos-arm64"; tar -xzvf ${ARTIFACT}/${ARTIFACT}.tgz -C ./deps/ziti-tunnel-sdk-c
+        ARTIFACT="build-iphonesimulator-x86_64"; tar -xzvf ${ARTIFACT}/${ARTIFACT}.tgz -C ./deps/ziti-tunnel-sdk-c
+        ARTIFACT="build-iphonesimulator-arm64"; tar -xzvf ${ARTIFACT}/${ARTIFACT}.tgz -C ./deps/ziti-tunnel-sdk-c
+        ARTIFACT="build-macosx-x86_64"; tar -xzvf ${ARTIFACT}/${ARTIFACT}.tgz -C ./deps/ziti-tunnel-sdk-c
         ARTIFACT="build-macosx-arm64"; tar -xzvf ${ARTIFACT}/${ARTIFACT}.tgz -C ./deps/ziti-tunnel-sdk-c
-
+        
     - name: Build CZiti
       run: |
         set -o pipefail
