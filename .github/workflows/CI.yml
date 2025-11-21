@@ -19,11 +19,7 @@ jobs:
     strategy:
       matrix:
         spec:
-        - { name: 'build-iphoneos-arm64', toolchain: 'iOS-arm64' }
-        - { name: 'build-iphonesimulator-x86_64', toolchain: 'iOS-Simulator-x86_64' }
-        - { name: 'build-iphonesimulator-arm64', toolchain: 'iOS-Simulator-arm64' }
         - { name: 'build-macosx-arm64', toolchain: 'macOS-arm64' }
-        - { name: 'build-macosx-x86_64', toolchain: 'macOS-x86_64' }
 
     steps:
     - name: Checkout Project
@@ -116,19 +112,11 @@ jobs:
 
     - name: Extract TSDK Builds
       run: |
-        ARTIFACT="build-iphoneos-arm64"; tar -xzvf ${ARTIFACT}/${ARTIFACT}.tgz -C ./deps/ziti-tunnel-sdk-c
-        ARTIFACT="build-iphonesimulator-x86_64"; tar -xzvf ${ARTIFACT}/${ARTIFACT}.tgz -C ./deps/ziti-tunnel-sdk-c
-        ARTIFACT="build-iphonesimulator-arm64"; tar -xzvf ${ARTIFACT}/${ARTIFACT}.tgz -C ./deps/ziti-tunnel-sdk-c
-        ARTIFACT="build-macosx-x86_64"; tar -xzvf ${ARTIFACT}/${ARTIFACT}.tgz -C ./deps/ziti-tunnel-sdk-c
         ARTIFACT="build-macosx-arm64"; tar -xzvf ${ARTIFACT}/${ARTIFACT}.tgz -C ./deps/ziti-tunnel-sdk-c
 
     - name: Build CZiti
       run: |
         set -o pipefail
-        xcodebuild build -configuration Release -scheme CZiti-iOS -derivedDataPath ./DerivedData/CZiti \
-          -arch arm64 -sdk iphoneos | xcpretty
-        xcodebuild build -configuration Release -scheme CZiti-iOS -derivedDataPath ./DerivedData/CZiti \
-           -arch x86_64 -arch arm64 ONLY_ACTIVE_ARCH=NO -sdk iphonesimulator | xcpretty
         xcodebuild build -configuration Release -scheme CZiti-macOS -derivedDataPath ./DerivedData/CZiti \
            -arch x86_64 -arch arm64 ONLY_ACTIVE_ARCH=NO -sdk macosx  | xcpretty
 
