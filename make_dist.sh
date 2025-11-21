@@ -11,7 +11,7 @@ SWIFTMODULE_NAME="CZiti.swiftmodule"
 : ${CONFIGURATION:="Release"}
 
 # make for iOS, macOS, or All
-: ${FOR:="All"}
+: ${FOR:="macOS"}
 
 function edit_interfaces {
    module_dir="$1"
