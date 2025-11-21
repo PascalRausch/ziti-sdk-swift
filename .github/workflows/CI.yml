@@ -26,13 +26,46 @@ jobs:
         - { name: 'build-macosx-x86_64', toolchain: 'macOS-x86_64' }
 
     steps:
-    - name: Check CMake Version
-      run: cmake --version
-      
     - name: Checkout Project
       uses: actions/checkout@v4
       with:
-        submodules: true
+        fetch-depth: 0
+        submodules: recursive
+        persist-credentials: true
+
+    # Tools installieren (Ninja + CMake an den erwarteten Pfad /opt/homebrew/bin)
+    - name: Install tools
+      run: |
+        brew update
+        brew install ninja cmake pkg-config
+        which ninja || exit 1
+        ninja --version
+        which cmake
+        cmake --version
+
+    # Xcode/SDK sicherstellen
+    - name: Select Xcode & print SDK
+      run: |
+        xcodebuild -version
+        xcrun --show-sdk-path
+        # explizit clang setzen (optional, aber klar)
+        echo "CC=$(xcrun -f clang)"   >> $GITHUB_ENV
+        echo "CXX=$(xcrun -f clang++)" >> $GITHUB_ENV
+        echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
+
+    # (Optional) Debug: Umgebung prüfen
+    - name: Print toolchain info
+      run: |
+        echo "CC=$CC"
+        echo "CXX=$CXX"
+        echo "SDKROOT=$SDKROOT"
+        echo "PATH=$PATH"
+
+    - name: Show submodule status
+      if: ${{ always() }}
+      run: |
+        git submodule status --recursive
+        git config --file .gitmodules --get-regexp url || true
 
     - uses: maxim-lobanov/setup-xcode@v1
       with:
@@ -41,7 +74,7 @@ jobs:
     - name: macOS tools
       if: runner.os == 'macOS'
       shell: bash
-      run: brew install autoconf autoconf-archive automake pkg-config
+      run: brew install autoconf autoconf-archive automake libtool pkg-config ninja cmake
 
     - uses: lukka/run-vcpkg@v11
       with:
@@ -52,15 +85,10 @@ jobs:
         TOOLCHAIN: ${{ matrix.spec.toolchain && format('../../toolchains/{0}.cmake', matrix.spec.toolchain) || '' }}
       run: |
         (cd deps/ziti-tunnel-sdk-c && git fetch --tags)
-        cmake -DCMAKE_BUILD_TYPE=Release -DTLSUV_TLSLIB=openssl -DEXCLUDE_PROGRAMS=ON -DVCPKG_INSTALL_OPTIONS="--overlay-ports=./deps/vcpkg-overlays/json-c" -DZITI_TUNNEL_BUILD_TESTS=OFF -DCMAKE_TOOLCHAIN_FILE="${TOOLCHAIN}" -S ./deps/ziti-tunnel-sdk-c -B ./deps/ziti-tunnel-sdk-c/${{ matrix.spec.name }}
-        cmake --build ./deps/ziti-tunnel-sdk-c/${{ matrix.spec.name }}
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DTLSUV_TLSLIB=openssl -DEXCLUDE_PROGRAMS=ON -DVCPKG_INSTALL_OPTIONS="--overlay-ports=./deps/vcpkg-overlays/json-c" -DZITI_TUNNEL_BUILD_TESTS=OFF -DCMAKE_TOOLCHAIN_FILE="${TOOLCHAIN}" -DCMAKE_MAKE_PROGRAM=/opt/homebrew/bin/ninja -DCMAKE_C_COMPILER="$CC" -DCMAKE_CXX_COMPILER="$CXX" -S ./deps/ziti-tunnel-sdk-c -B ./deps/ziti-tunnel-sdk-c/${{ matrix.spec.name }} 
+        cmake --build ./deps/ziti-tunnel-sdk-c/${{ matrix.spec.name }} --config Release
         tar -cvzf ${{ matrix.spec.name }}.tgz -C ./deps/ziti-tunnel-sdk-c ${{ matrix.spec.name }}
-    
-    - name: Dump CMake logs
-      if: always()
-      run: |
-        cat /Users/runner/work/ziti-sdk-swift/ziti-sdk-swift/vcpkg/buildtrees/json-c/*.log
-        
+
     - name: Upload Build
       uses: actions/upload-artifact@v4
       with:
@@ -75,7 +103,10 @@ jobs:
     - name: Checkout Project
       uses: actions/checkout@v3
       with:
-        submodules: true
+        token: ${{ secrets.ZITI_REPO_PERSONAL_ACCESS_TOKEN }}
+        fetch-depth: 0
+        submodules: recursive
+        persist-credentials: true
 
     - uses: maxim-lobanov/setup-xcode@v1
       with:
@@ -133,7 +164,10 @@ jobs:
     - name: Checkout Project
       uses: actions/checkout@v4
       with:
+        token: ${{ secrets.ZITI_REPO_PERSONAL_ACCESS_TOKEN }}
         fetch-depth: 0
+        submodules: recursive
+        persist-credentials: true
 
     - name: Download Docs
       uses: actions/download-artifact@v4
